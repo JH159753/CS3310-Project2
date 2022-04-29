@@ -99,11 +99,12 @@ int main() {
     for (int i = 0; i < size; i++) {
         listToSort[i] = rand() % 100;
     }
-
+    cout << "This should not be sorted" << endl;
     printArray(listToSort, size);
 
     mergeSort(listToSort, 0, size-1);
 
+    cout << "This SHOULD be sorted" << endl;
     printArray(listToSort, size);
 
     //deallocate memory just in case
