@@ -46,16 +46,19 @@ void merge(int* array, int left, int middle, int right) {
     }
 
     //Whichever one hasn't finished running through all the way, finish copying it
-    if (indexLeft != leftArraySize) {
-        while (indexLeft < leftArraySize) {
-            array[indexMergedArray] = leftArray[indexLeft];
-            indexLeft++;
-        }
+ 
+    while (indexLeft < leftArraySize) {
+        array[indexMergedArray] = leftArray[indexLeft];
+        indexLeft++;
+        indexMergedArray++;
     }
-    else {
+
+    while (indexRight < rightArraySize) {
         array[indexMergedArray] = rightArray[indexRight];
         indexRight++;
+        indexMergedArray++;
     }
+    
 
 
     //When done, deallocate memory to stop leaks
