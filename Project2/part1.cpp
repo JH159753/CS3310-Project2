@@ -29,8 +29,8 @@ void merge(int* array, int left, int middle, int right) {
     //index for our merged array starts from left though
     int indexMergedArray = left;
 
-    //while our indexes haven't run through BOTH arrays all the way, do this.
-    while (indexLeft < leftArraySize || indexRight < rightArraySize) {
+    //while our indexes haven't run through either array all the way, do this.
+    while (indexLeft < leftArraySize && indexRight < rightArraySize) {
         //if the left one's smaller, add it to our array at the specified position, then increment indexLeft
         if (leftArray[indexLeft] < rightArray[indexRight]) {
             array[indexMergedArray] = leftArray[indexLeft];
@@ -44,6 +44,19 @@ void merge(int* array, int left, int middle, int right) {
         //regardless of which one happens, increment this
         indexMergedArray++;
     }
+
+    //Whichever one hasn't finished running through all the way, finish copying it
+    if (indexLeft != leftArraySize) {
+        while (indexLeft < leftArraySize) {
+            array[indexMergedArray] = leftArray[indexLeft];
+            indexLeft++;
+        }
+    }
+    else {
+        array[indexMergedArray] = rightArray[indexRight];
+        indexRight++;
+    }
+
 
     //When done, deallocate memory to stop leaks
     delete[] leftArray;
