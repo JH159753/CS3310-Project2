@@ -68,7 +68,7 @@ void merge(int* array, int left, int middle, int right) {
 
 }
 
-void mergeSort(int *array, int left, int right) {
+void mergeSort(int* array, int left, int right) {
     //split the array in the middle and then run both halves through mergesort again, then put them back together with merge
     if (right > left) {
         int middle = left + (right - left) / 2;
@@ -78,8 +78,33 @@ void mergeSort(int *array, int left, int right) {
     }
 }
 
-int findKSmallest(int* array, int k) {
+int findKSmallestFromSorted(int* array, int k) {
     return array[k];
+}
+
+//partition function for quicksort
+int partition(int* array, int size, int low, int high) {
+    int swapStorage = 0;
+    int pivotValue = array[high];
+    cout << "end of array " << pivotValue << endl;
+    //pivotPosition indicates where the pivot will belong in the end
+    int pivotPosition = low;
+    //go through every value in the array except the pivot
+    for (int i = low; i < high; i++) {
+        //if the value we're looking at is less than pivot value, do this
+        if (array[i] < pivotValue) {
+            //swap values, then increment pivotPosition
+            swapStorage = array[pivotPosition];
+            array[pivotPosition] = array[i];
+            array[i] = swapStorage;
+            pivotPosition++;
+        }
+    }
+
+    array[high] = array[pivotPosition];
+    array[pivotPosition] = pivotValue;
+
+    return pivotPosition;
 }
 
 void printArray(int* array, int size) {
@@ -115,23 +140,25 @@ int main() {
         listToSort[i] = masterList[i];
     }
 
+    auto algorithmOneStart = chrono::high_resolution_clock::now();
+    //mergeSort(listToSort, 0, size-1);
+    //cout << "Kth smallest element from algorithm 1 is " << findKSmallestFromSorted(listToSort, k) << endl;
+    auto algorithmOneEnd = chrono::high_resolution_clock::now();
+    
+    //cout << "Algorithm 1 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmOneEnd - algorithmOneStart).count() << " nanoseconds" << endl;
+
     //Make a new list for the iterative partition algorithm and copy values
     int* iterativePartitionList = new int[size];
     for (int i = 0; i < size; i++) {
         iterativePartitionList[i] = masterList[i];
     }
-
-    auto algorithmOneStart = chrono::high_resolution_clock::now();
-    mergeSort(listToSort, 0, size-1);
-    cout << findKSmallest(listToSort, k) << endl;
-    auto algorithmOneEnd = chrono::high_resolution_clock::now();
     
-    cout << "Algorithm 1 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmOneEnd - algorithmOneStart).count() << " nanoseconds" << endl;
-    
-        
+    cout << "pivot is at position " << partition(iterativePartitionList, size, 0, size-1) << endl;
+    printArray(iterativePartitionList, size);
 
     //deallocate memory 
     delete[] masterList;
     delete[] listToSort;
+    delete[] iterativePartitionList;
     return 0;
 }
