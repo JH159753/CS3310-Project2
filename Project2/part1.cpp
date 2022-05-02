@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 
@@ -77,6 +78,10 @@ void mergeSort(int *array, int left, int right) {
     }
 }
 
+int findKSmallest(int* array, int k) {
+    return array[k];
+}
+
 void printArray(int* array, int size) {
     for (int i = 0; i < size; i++) {
         cout << array[i] << " ";
@@ -90,27 +95,37 @@ int main() {
     srand(0);
 
     int size = 0;
+    int k = 0;
 
     //make array to sort, size dependent on user
     cout << "Enter a size for the array here, values will be random 0-99" << endl;
     cin >> size;
 
-    //pointer listToSort points to array of size the user gives it
-    int* listToSort = new int[size];
+    //pointer masterList points to array of size the user gives it
+    int* masterList = new int[size];
 
-    //set listToSort's values to random values from 0 to 99
+    //set masterList's values to random values from 0 to 99
     for (int i = 0; i < size; i++) {
-        listToSort[i] = rand() % 100;
+        masterList[i] = rand() % 100;
     }
-    cout << "This should not be sorted" << endl;
-    printArray(listToSort, size);
 
+    //Make a new list for the sorting portion, and copy values in
+    int* listToSort = new int[size];
+    for (int i = 0; i < size; i++) {
+        listToSort[i] = masterList[i];
+    }
+
+    auto algorithmOneStart = chrono::high_resolution_clock::now();
     mergeSort(listToSort, 0, size-1);
+    cout << findKSmallest(listToSort, k) << endl;
+    auto algorithmOneEnd = chrono::high_resolution_clock::now();
+    
+    cout << "Algorithm 1 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmOneEnd - algorithmOneStart).count() << " nanoseconds" << endl;
+    
+        
 
-    cout << "This SHOULD be sorted" << endl;
-    printArray(listToSort, size);
-
-    //deallocate memory just in case
+    //deallocate memory 
+    delete[] masterList;
     delete[] listToSort;
     return 0;
 }
