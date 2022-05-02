@@ -115,6 +115,12 @@ int main() {
         listToSort[i] = masterList[i];
     }
 
+    //Make a new list for the iterative partition algorithm and copy values
+    int* iterativePartitionList = new int[size];
+    for (int i = 0; i < size; i++) {
+        iterativePartitionList[i] = masterList[i];
+    }
+
     auto algorithmOneStart = chrono::high_resolution_clock::now();
     mergeSort(listToSort, 0, size-1);
     cout << findKSmallest(listToSort, k) << endl;
