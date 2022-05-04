@@ -86,7 +86,7 @@ int findKSmallestFromSorted(int* array, int k) {
 int partition(int* array, int size, int low, int high) {
     int swapStorage = 0;
     int pivotValue = array[high];
-    cout << "end of array " << pivotValue << endl;
+    //cout << "end of array " << pivotValue << endl;
     //pivotPosition indicates where the pivot will belong in the end
     int pivotPosition = low;
     //go through every value in the array except the pivot
@@ -105,6 +105,50 @@ int partition(int* array, int size, int low, int high) {
     array[pivotPosition] = pivotValue;
 
     return pivotPosition;
+}
+
+int findKSmallestUsingIterativePartition(int* array, int size, int k) {
+
+    int low = 0;
+    int high = size - 1;
+    int pivotPosition = partition(array, size, low, high);
+    //cout << "Pivot is at " << pivotPosition << endl;
+
+    while (pivotPosition != k) {
+        //if pivotposition is less than k, then we should try again with anything between pivotPosition and high
+        if (pivotPosition < k) {
+            low = pivotPosition;
+        }
+        //if pivotposition is greater than k, try again with anything between low and pivotPosition
+        else {
+            high = pivotPosition - 1;
+        }
+        pivotPosition = partition(array, size, low, high);
+        //cout << "Pivot is at " << pivotPosition << endl;
+    }
+    return array[k];
+}
+
+int findKSmallestUsingRecursivePartition(int* array, int size, int k, int low, int high) {
+    int pivotPosition = partition(array, size, low, high);
+    //cout << "Pivot is at " << pivotPosition << endl;
+    
+    if (pivotPosition == k) {
+        return array[k];
+    }
+    else {
+        //if pivotPosition is less than k, try again with anything between pivotPosition and high
+        if (pivotPosition < k) {
+            low = pivotPosition;
+        }
+        //if it is greater, then try again with anything between low and pivotposition
+        else {
+            high = pivotPosition - 1;
+        }
+    }
+    findKSmallestUsingRecursivePartition(array, size, k, low, high);
+
+
 }
 
 void printArray(int* array, int size) {
@@ -140,12 +184,12 @@ int main() {
         listToSort[i] = masterList[i];
     }
 
+    //run and keep track of time
     auto algorithmOneStart = chrono::high_resolution_clock::now();
-    //mergeSort(listToSort, 0, size-1);
-    //cout << "Kth smallest element from algorithm 1 is " << findKSmallestFromSorted(listToSort, k) << endl;
+    mergeSort(listToSort, 0, size-1);
+    cout << "Kth smallest element from algorithm 1 is " << findKSmallestFromSorted(listToSort, k) << endl;
     auto algorithmOneEnd = chrono::high_resolution_clock::now();
-    
-    //cout << "Algorithm 1 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmOneEnd - algorithmOneStart).count() << " nanoseconds" << endl;
+    cout << "Algorithm 1 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmOneEnd - algorithmOneStart).count() << " nanoseconds" << endl;
 
     //Make a new list for the iterative partition algorithm and copy values
     int* iterativePartitionList = new int[size];
@@ -153,12 +197,31 @@ int main() {
         iterativePartitionList[i] = masterList[i];
     }
     
-    cout << "pivot is at position " << partition(iterativePartitionList, size, 0, size-1) << endl;
-    printArray(iterativePartitionList, size);
+    //run and keep track of time
+    auto algorithmTwoStart = chrono::high_resolution_clock::now();
+    cout << "Kth smallest element from algorithm 2 is " << findKSmallestUsingIterativePartition(iterativePartitionList, size, k) << endl;
+    auto algorithmTwoEnd = chrono::high_resolution_clock::now();
+    cout << "Algorithm 2 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmTwoEnd - algorithmTwoStart).count() << " nanoseconds" << endl;
+
+    //make new list for recursive partition algorithm
+    int* recursivePartitionList = new int[size];
+    for (int i = 0; i < size; i++) {
+        recursivePartitionList[i] = masterList[i];
+    }
+
+    //run and keep track of time
+    auto algorithmThreeStart = chrono::high_resolution_clock::now();
+    cout << "Kth smallest element from algorithm 3 is " << findKSmallestUsingRecursivePartition(recursivePartitionList, size, k, 0, size - 1) << endl;
+    auto algorithmThreeEnd = chrono::high_resolution_clock::now();
+    cout << "Algorithm 3 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmThreeEnd - algorithmThreeStart).count() << " nanoseconds" << endl;
+
+    //This is here so we can see the sorted list in the end, so we can try to verify our results
+    printArray(listToSort, size);
 
     //deallocate memory 
     delete[] masterList;
     delete[] listToSort;
     delete[] iterativePartitionList;
+    delete[] recursivePartitionList;
     return 0;
 }
