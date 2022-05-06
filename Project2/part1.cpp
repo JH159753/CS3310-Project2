@@ -145,8 +145,9 @@ int findKSmallestUsingRecursivePartition(int* array, int size, int k, int low, i
         else {
             high = pivotPosition - 1;
         }
+        findKSmallestUsingRecursivePartition(array, size, k, low, high);
     }
-    findKSmallestUsingRecursivePartition(array, size, k, low, high);
+    
 
 
 }
@@ -216,7 +217,14 @@ int main() {
     cout << "Algorithm 3 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmThreeEnd - algorithmThreeStart).count() << " nanoseconds" << endl;
 
     //This is here so we can see the sorted list in the end, so we can try to verify our results
+    cout << "sorted array:" << endl;
     printArray(listToSort, size);
+
+    //let's look at the other ones just out of curiosity 
+    cout << "results of iterative" << endl;
+    printArray(iterativePartitionList, size);
+    cout << "results of recursive" << endl;
+    printArray(recursivePartitionList, size);
 
     //deallocate memory 
     delete[] masterList;
