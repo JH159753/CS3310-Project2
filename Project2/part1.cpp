@@ -152,6 +152,81 @@ int findKSmallestUsingRecursivePartition(int* array, int size, int k, int low, i
 
 }
 
+int findKSmallestUsingMedians(int* array, int size, int k, int low, int high) {
+    //if size < 5, should just be able to sort and return k element
+    if (size < 5) {
+        mergeSort(array, 0, size - 1);
+        return findKSmallestFromSorted(array, k);
+    }
+
+    //make a new array with size / 5, add 1 if the remainder is not 0
+    int* arrayOfMedians = new int[(size / 5)];
+    int sizeMediansArray = (size / 5);
+
+    /**
+    if (size % 5 != 0) {
+        arrayOfMedians = new int[(size / 5) + 1];
+        sizeMediansArray = (size / 5) + 1; 
+    }
+    else {
+        arrayOfMedians = new int[(size / 5)];
+        sizeMediansArray = size / 5;
+    }
+    **/
+    
+    int* groupOfFive = new int[5];
+    //groupsize stays 5
+    int groupSize = 5;
+    //this is so we know how many values in arrayOfMedians
+    int counter = 0;
+    
+    for (int i = 0; i < size; i++) {
+        //use the modulo operator to know when to reset
+        groupOfFive[i%5] = array[i];
+
+        //if modulo i returns 4, calculate median of the group
+        if (i % 5 == 4) {
+            groupSize = 5;
+            arrayOfMedians[counter] = modifiedSelectionSortForMedian(groupOfFive, groupSize);
+            counter++;
+        }
+        /**
+        else if (i == size - 1) {
+            groupSize = (i % 5) + 1;
+            arrayOfMedians[counter] = modifiedSelectionSortForMedian(groupOfFive, groupSize);
+            counter++;
+        }
+        **/
+
+    }
+
+    //after filling ArrayOfMedians, find the actual median and use it as the pivot for partitioning
+    int pivot = findKSmallestUsingIterativePartition(arrayOfMedians, counter, counter/2);
+
+    
+
+}
+
+//we cheat by only sorting half the list and returning median
+int modifiedSelectionSortForMedian(int* array, int size) {
+    int minimum = 0;
+    int storage = 0;
+    for (int i = 0; i <= (size / 2); i++) {
+        minimum = array[i];
+        for (int j = i + 1; j < size; j++) {
+            if (array[j] < minimum) {
+
+                //swap minimum and whatevers in array j
+                storage = minimum;
+                minimum = array[j];
+                array[j] = storage;
+
+            }
+        }
+    }
+    return array[size / 2];
+}
+
 void printArray(int* array, int size) {
     for (int i = 0; i < size; i++) {
         cout << array[i] << " ";
