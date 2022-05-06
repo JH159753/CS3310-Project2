@@ -152,61 +152,6 @@ int findKSmallestUsingRecursivePartition(int* array, int size, int k, int low, i
 
 }
 
-int findKSmallestUsingMedians(int* array, int size, int k, int low, int high) {
-    //if size < 5, should just be able to sort and return k element
-    if (size < 5) {
-        mergeSort(array, 0, size - 1);
-        return findKSmallestFromSorted(array, k);
-    }
-
-    //make a new array with size / 5, add 1 if the remainder is not 0
-    int* arrayOfMedians = new int[(size / 5)];
-    int sizeMediansArray = (size / 5);
-
-    /**
-    if (size % 5 != 0) {
-        arrayOfMedians = new int[(size / 5) + 1];
-        sizeMediansArray = (size / 5) + 1; 
-    }
-    else {
-        arrayOfMedians = new int[(size / 5)];
-        sizeMediansArray = size / 5;
-    }
-    **/
-    
-    int* groupOfFive = new int[5];
-    //groupsize stays 5
-    int groupSize = 5;
-    //this is so we know how many values in arrayOfMedians
-    int counter = 0;
-    
-    for (int i = 0; i < size; i++) {
-        //use the modulo operator to know when to reset
-        groupOfFive[i%5] = array[i];
-
-        //if modulo i returns 4, calculate median of the group
-        if (i % 5 == 4) {
-            groupSize = 5;
-            arrayOfMedians[counter] = modifiedSelectionSortForMedian(groupOfFive, groupSize);
-            counter++;
-        }
-        /**
-        else if (i == size - 1) {
-            groupSize = (i % 5) + 1;
-            arrayOfMedians[counter] = modifiedSelectionSortForMedian(groupOfFive, groupSize);
-            counter++;
-        }
-        **/
-
-    }
-
-    //after filling ArrayOfMedians, find the actual median and use it as the pivot for partitioning
-    int pivot = findKSmallestUsingIterativePartition(arrayOfMedians, counter, counter/2);
-
-    
-
-}
-
 //we cheat by only sorting half the list and returning median
 int modifiedSelectionSortForMedian(int* array, int size) {
     int minimum = 0;
@@ -227,6 +172,71 @@ int modifiedSelectionSortForMedian(int* array, int size) {
     return array[size / 2];
 }
 
+int findKSmallestUsingMedians(int* array, int size, int k, int low, int high) {
+    size = high - low + 1;
+    //if size < 5, should just be able to sort and return k element
+    if (size < 5) {
+        mergeSort(array, 0, size - 1);
+        return findKSmallestFromSorted(array, k);
+    }
+
+    //make a new array with size / 5
+    int* arrayOfMedians = new int[(size / 5)];
+    int sizeMediansArray = (size / 5);
+
+    
+    
+    int* groupOfFive = new int[5];
+    //groupsize stays 5
+    int groupSize = 5;
+    //this is so we know how many values in arrayOfMedians
+    int counter = 0;
+    
+    for (int i = low; i < high; i++) {
+        //use the modulo operator to know when to reset
+        groupOfFive[(i - low)%5] = array[i];
+
+        //if modulo i returns 4, calculate median of the group
+        if ((i - low) % 5 == 4) {
+            groupSize = 5;
+            arrayOfMedians[counter] = modifiedSelectionSortForMedian(groupOfFive, groupSize);
+            counter++;
+        }
+        
+
+    }
+
+    //after filling ArrayOfMedians, find the actual median and use it as the pivot for partitioning
+    int pivotPosition = findKSmallestUsingIterativePartition(arrayOfMedians, counter, counter/2);
+    
+    //since my partition uses pivot is last, let's swap them
+    int pivotStorage = array[pivotPosition];
+    array[pivotPosition] = array[high];
+    array[high] = pivotStorage;
+
+    //use partition to find where the pivot ended up so we can cut off stuff
+    pivotPosition = partition(array, size, low, high);
+
+    if (pivotPosition == k) {
+        return array[k];
+    }
+    else {
+        if (pivotPosition < k) {
+            low = pivotPosition;
+        }
+        else {
+            high = pivotPosition - 1;
+        }
+        findKSmallestUsingMedians(array, size, k, low, high);
+    }
+
+
+    //deallocate memory after we don't need it
+    
+
+}
+
+
 void printArray(int* array, int size) {
     for (int i = 0; i < size; i++) {
         cout << array[i] << " ";
@@ -240,11 +250,12 @@ int main() {
     srand(0);
 
     int size = 0;
-    int k = 0;
 
     //make array to sort, size dependent on user
     cout << "Enter a size for the array here, values will be random 0-99" << endl;
     cin >> size;
+
+    int k = size / 4;
 
     //pointer masterList points to array of size the user gives it
     int* masterList = new int[size];
@@ -291,6 +302,12 @@ int main() {
     auto algorithmThreeEnd = chrono::high_resolution_clock::now();
     cout << "Algorithm 3 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmThreeEnd - algorithmThreeStart).count() << " nanoseconds" << endl;
 
+    //run and keep track of time, and we are using masterlist because it's gonna be deleted anyway so whatever
+    auto algorithmFourStart = chrono::high_resolution_clock::now();
+    cout << "Kth smallest element from algorithm 4 is " << findKSmallestUsingMedians(masterList, size, k, 0, size - 1) << endl;
+    auto algorithmFourEnd = chrono::high_resolution_clock::now();
+    cout << "Algorithm 4 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmFourEnd - algorithmFourStart).count() << " nanoseconds" << endl;
+
     //This is here so we can see the sorted list in the end, so we can try to verify our results
     cout << "sorted array:" << endl;
     printArray(listToSort, size);
@@ -300,6 +317,8 @@ int main() {
     printArray(iterativePartitionList, size);
     cout << "results of recursive" << endl;
     printArray(recursivePartitionList, size);
+    cout << "results of MM method" << endl;
+    printArray(masterList, size);
 
     //deallocate memory 
     delete[] masterList;
