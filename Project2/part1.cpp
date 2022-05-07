@@ -85,10 +85,6 @@ void mergeSort(int* array, int left, int right) {
     }
 }
 
-int findKSmallestFromSorted(int* array, int k) {
-    return array[k];
-}
-
 //partition function for quicksort
 int partition(int* array, int size, int low, int high) {
     int swapStorage = 0;
@@ -179,11 +175,12 @@ int modifiedSelectionSortForMedian(int* array, int size) {
     return array[size / 2];
 }
 
+//make sure this returns the index, not the value!
 int findMedianOfMedians(int* array, int size) {
     //if the size of the array we're trying to get the median of is not 5, do this
     if (size < 5) {
         mergeSort(array, 0, size - 1);
-        return findKSmallestFromSorted(array, size / 2);
+        return array[size/2];
     }
     //If the size is not less than 5, do this
     else {
@@ -194,16 +191,18 @@ int findMedianOfMedians(int* array, int size) {
         int* groupOfFive = new int[5];
         //groupsize stays 5
         int groupSize = 5;
+        int tracker = 0;
         
         for (int i = 0; i < sizeMediansArray; i++) {
             //for loop to fill our group of 5
             for (int j = 0; j < 5; j++) {
                 groupOfFive[j] = array[(5 * i) + j];
+                tracker = (5 * i) + j;
             }
             
             //calculate median and put it into arrayOfMedians
             mergeSort(groupOfFive, 0, 4);
-            arrayOfMedians[i] = findKSmallestFromSorted(groupOfFive, 2);
+            arrayOfMedians[i] = groupOfFive[2];
             
 
         }
@@ -214,7 +213,16 @@ int findMedianOfMedians(int* array, int size) {
         
         mergeSort(arrayOfMedians, 0, sizeMediansArray);
         
-        return findKSmallestFromSorted(arrayOfMedians, sizeMediansArray/2);
+        int pivotValue = arrayOfMedians[sizeMediansArray/2];
+
+        printArray(arrayOfMedians, sizeMediansArray);
+        cout << "pivotValue is " << pivotValue << endl;
+
+        for (int i = 0; i < size; i++) {
+            if (array[i] == pivotValue) {
+                return i;
+            }
+        }
 
 
         //deallocate memory
@@ -297,7 +305,7 @@ int main() {
     //run and keep track of time
     auto algorithmOneStart = chrono::high_resolution_clock::now();
     mergeSort(listToSort, 0, size-1);
-    cout << "Kth smallest element from algorithm 1 is " << findKSmallestFromSorted(listToSort, k) << endl;
+    cout << "Kth smallest element from algorithm 1 is " << listToSort[k] << endl;
     auto algorithmOneEnd = chrono::high_resolution_clock::now();
     cout << "Algorithm 1 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmOneEnd - algorithmOneStart).count() << " nanoseconds" << endl;
 
