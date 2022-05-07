@@ -267,10 +267,9 @@ int findKSmallestUsingMedians(int* array, int size, int k) {
         }
 
         cout << high - low << endl;
-        int* smallerArray = new int[high - low + 1];
+        int* smallerArray = new int[high - low];
         for (int i = low; i < high; i++) {
             smallerArray[i - low] = array[i];
-            cout << array[i] << endl;
         }
 
         printArray(smallerArray, high - low);
