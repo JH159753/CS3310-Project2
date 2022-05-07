@@ -4,6 +4,13 @@
 
 using namespace std;
 
+void printArray(int* array, int size) {
+    for (int i = 0; i < size; i++) {
+        cout << array[i] << " ";
+    }
+    cout << endl;
+}
+
 void merge(int* array, int left, int middle, int right) {
     //This is +1 because it's the size of the array, example left 0 mid 7 means size should be 8 not 7
     int leftArraySize = middle + 1 - left;
@@ -172,77 +179,93 @@ int modifiedSelectionSortForMedian(int* array, int size) {
     return array[size / 2];
 }
 
-int findKSmallestUsingMedians(int* array, int size, int k, int low, int high) {
-    size = high - low + 1;
-    //if size < 5, should just be able to sort and return k element
+int findMedianOfMedians(int* array, int size) {
+    //if the size of the array we're trying to get the median of is not 5, do this
     if (size < 5) {
         mergeSort(array, 0, size - 1);
-        return findKSmallestFromSorted(array, k);
+        return findKSmallestFromSorted(array, size / 2);
     }
-
-    //make a new array with size / 5
-    int* arrayOfMedians = new int[(size / 5)];
-    int sizeMediansArray = (size / 5);
-
-    
-    
-    int* groupOfFive = new int[5];
-    //groupsize stays 5
-    int groupSize = 5;
-    //this is so we know how many values in arrayOfMedians
-    int counter = 0;
-    
-    for (int i = low; i < high; i++) {
-        //use the modulo operator to know when to reset
-        groupOfFive[(i - low)%5] = array[i];
-
-        //if modulo i returns 4, calculate median of the group
-        if ((i - low) % 5 == 4) {
-            groupSize = 5;
-            arrayOfMedians[counter] = modifiedSelectionSortForMedian(groupOfFive, groupSize);
-            counter++;
-        }
-        
-
-    }
-
-    //after filling ArrayOfMedians, find the actual median and use it as the pivot for partitioning
-    int pivotPosition = findKSmallestUsingIterativePartition(arrayOfMedians, counter, counter/2);
-    
-    //since my partition uses pivot is last, let's swap them
-    int pivotStorage = array[pivotPosition];
-    array[pivotPosition] = array[high];
-    array[high] = pivotStorage;
-
-    //use partition to find where the pivot ended up so we can cut off stuff
-    pivotPosition = partition(array, size, low, high);
-
-    if (pivotPosition == k) {
-        return array[k];
-    }
+    //If the size is not less than 5, do this
     else {
+        //make a new array with size / 5
+        int* arrayOfMedians = new int[(size / 5)];
+        int sizeMediansArray = (size / 5);
+
+        int* groupOfFive = new int[5];
+        //groupsize stays 5
+        int groupSize = 5;
+        
+        for (int i = 0; i < sizeMediansArray; i++) {
+            //for loop to fill our group of 5
+            for (int j = 0; j < 5; j++) {
+                groupOfFive[j] = array[(5 * i) + j];
+            }
+            
+            //calculate median and put it into arrayOfMedians
+            mergeSort(groupOfFive, 0, 4);
+            arrayOfMedians[i] = findKSmallestFromSorted(groupOfFive, 2);
+            
+
+        }
+
+        //after you have all the medians, find the median of that 
+
+        //printArray(arrayOfMedians, sizeMediansArray);
+        
+        mergeSort(arrayOfMedians, 0, sizeMediansArray);
+        
+        return findKSmallestFromSorted(arrayOfMedians, sizeMediansArray/2);
+
+
+        //deallocate memory
+        delete[] arrayOfMedians;
+        delete[] groupOfFive;
+
+
+    }
+    
+
+}
+
+
+int findKSmallestUsingMedians(int* array, int size, int k) {
+    
+    int low = 0;
+    int high = size - 1;
+
+    int pivotPosition = findMedianOfMedians(array, size);
+
+    //swap pivotPosition with high
+    int storage = array[pivotPosition];
+    array[pivotPosition] = array[high];
+    array[high] = storage;
+
+
+    pivotPosition = partition(array, size, low, high);
+    //cout << "Pivot is at " << pivotPosition << endl;
+
+    while (pivotPosition != k) {
+        //if pivotposition is less than k, then we should try again with anything between pivotPosition and high
         if (pivotPosition < k) {
             low = pivotPosition;
         }
+        //if pivotposition is greater than k, try again with anything between low and pivotPosition
         else {
             high = pivotPosition - 1;
         }
-        findKSmallestUsingMedians(array, size, k, low, high);
+
+        pivotPosition = findMedianOfMedians(array, size);
+
+        //swap pivotPosition with high
+        storage = array[pivotPosition];
+        array[pivotPosition] = array[high];
+        array[high] = storage;
+        pivotPosition = partition(array, size, low, high);
+        //cout << "Pivot is at " << pivotPosition << endl;
     }
-
-
-    //deallocate memory after we don't need it
-    
-
+    return array[k];
 }
 
-
-void printArray(int* array, int size) {
-    for (int i = 0; i < size; i++) {
-        cout << array[i] << " ";
-    }
-    cout << endl;
-}
 
 
 int main() {
@@ -304,7 +327,7 @@ int main() {
 
     //run and keep track of time, and we are using masterlist because it's gonna be deleted anyway so whatever
     auto algorithmFourStart = chrono::high_resolution_clock::now();
-    cout << "Kth smallest element from algorithm 4 is " << findKSmallestUsingMedians(masterList, size, k, 0, size - 1) << endl;
+    cout << "Kth smallest element from algorithm 4 is " << findKSmallestUsingMedians(masterList, size, k) << endl;
     auto algorithmFourEnd = chrono::high_resolution_clock::now();
     cout << "Algorithm 4 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmFourEnd - algorithmFourStart).count() << " nanoseconds" << endl;
 
