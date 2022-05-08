@@ -87,6 +87,12 @@ void mergeSort(int* array, int left, int right) {
 
 //partition function for quicksort
 int partition(int* array, int size, int low, int high) {
+    cout << endl;
+    cout << "high is " << high << endl;
+    cout << "low is " << low << endl;
+    cout << "array is" << endl;
+    printArray(array + low, high - low + 1);
+
     int swapStorage = 0;
     int pivotValue = array[high];
     //cout << "end of array " << pivotValue << endl;
@@ -115,18 +121,19 @@ int findKSmallestUsingIterativePartition(int* array, int size, int k) {
     int low = 0;
     int high = size - 1;
     int pivotPosition = partition(array, size, low, high);
-    //cout << "Pivot is at " << pivotPosition << endl;
 
     while (pivotPosition != k) {
         //if pivotposition is less than k, then we should try again with anything between pivotPosition and high
         if (pivotPosition < k) {
-            low = pivotPosition;
+            low = pivotPosition + 1;
         }
         //if pivotposition is greater than k, try again with anything between low and pivotPosition
         else {
             high = pivotPosition - 1;
         }
         pivotPosition = partition(array, size, low, high);
+        cout << "k is" << k << endl;
+        cout << "Pivot is at " << pivotPosition << endl;
         //cout << "Pivot is at " << pivotPosition << endl;
     }
     return array[k];
@@ -142,7 +149,7 @@ int findKSmallestUsingRecursivePartition(int* array, int size, int k, int low, i
     else {
         //if pivotPosition is less than k, try again with anything between pivotPosition and high
         if (pivotPosition < k) {
-            low = pivotPosition;
+            low = pivotPosition + 1;
         }
         //if it is greater, then try again with anything between low and pivotposition
         else {
@@ -208,16 +215,11 @@ int findMedianOfMedians(int* array, int size, int k) {
         }
 
         //after you have all the medians, find the median of that 
-        //cout << "not sorted" << endl;
-        //printArray(arrayOfMedians, sizeMediansArray);
         
         mergeSort(arrayOfMedians, 0, sizeMediansArray-1);
         
         int pivotValue = arrayOfMedians[sizeMediansArray/2];
 
-        //cout << "sorted" << endl;
-        //printArray(arrayOfMedians, sizeMediansArray);
-        //cout << "pivotValue is " << pivotValue << endl;
 
         for (int i = 0; i < size; i++) {
             if (array[i] == pivotValue) {
@@ -242,7 +244,7 @@ int findKSmallestUsingMedians(int* array, int size, int k) {
     int low = 0;
     int high = size - 1;
 
-    cout << "k is " << k << endl;
+    //cout << "k is " << k << endl;
 
     int pivotPosition = findMedianOfMedians(array, size, k);
 
@@ -250,6 +252,7 @@ int findKSmallestUsingMedians(int* array, int size, int k) {
     int storage = array[pivotPosition];
     array[pivotPosition] = array[high];
     array[high] = storage;
+    
 
     pivotPosition = partition(array, size, low, high);
     cout << "Pivot is at " << pivotPosition << " and pivot value is " << array[pivotPosition] << endl;
@@ -259,58 +262,31 @@ int findKSmallestUsingMedians(int* array, int size, int k) {
     else {
         //if pivotposition is less than k, then we should try again with anything between pivotPosition and high
         if (pivotPosition < k) {
-            low = pivotPosition;
-        }
-        //if pivotposition is greater than k, try again with anything between low and pivotPosition
-        else {
-            high = pivotPosition;
-        }
-
-        cout << high - low << endl;
-        int* smallerArray = new int[high - low];
-        for (int i = low; i < high; i++) {
-            smallerArray[i - low] = array[i];
-        }
-
-        printArray(smallerArray, high - low);
-
-        findKSmallestUsingMedians(smallerArray, high - low, k - low);
-    }
-
-    /**
-    while (pivotPosition != k) {
-        //if pivotposition is less than k, then we should try again with anything between pivotPosition and high
-        if (pivotPosition < k) {
-            low = pivotPosition;
+            low = pivotPosition + 1;
         }
         //if pivotposition is greater than k, try again with anything between low and pivotPosition
         else {
             high = pivotPosition - 1;
         }
 
-        cout << high - low << endl;
+        //cout << high - low + 1 << endl;
         int* smallerArray = new int[high - low];
-        for (int i = low; i < high; i++) {
+        for (int i = low; i < high + 1; i++) {
             smallerArray[i - low] = array[i];
         }
+        cout << "this is smaller array" << endl;
+        printArray(smallerArray, high - low + 1);
 
-        printArray(smallerArray, high - low);
+        cout << "This is whole array" << endl;
+        printArray(array, size);
+ 
+        findKSmallestUsingMedians(smallerArray, high - low + 1, k - low);
 
-        findKSmallestUsingMedians(smallerArray, high - low, k - low);
-        
 
-        
-        pivotPosition = findMedianOfMedians(array, size);
-
-        //swap pivotPosition with high
-        storage = array[pivotPosition];
-        array[pivotPosition] = array[high];
-        array[high] = storage;
-        pivotPosition = partition(array, size, low, high);
-        //cout << "Pivot is at " << pivotPosition << endl;
         
     }
-    **/
+    
+    
 }
 
 
