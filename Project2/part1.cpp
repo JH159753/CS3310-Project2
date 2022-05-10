@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
+#include <time.h>
 
 using namespace std;
 
@@ -87,11 +88,8 @@ void mergeSort(int* array, int left, int right) {
 
 //partition function for quicksort
 int partition(int* array, int size, int low, int high) {
-    cout << endl;
-    cout << "high is " << high << endl;
-    cout << "low is " << low << endl;
-    cout << "array is" << endl;
-    printArray(array + low, high - low + 1);
+    //cout << "high is " << high << endl;
+    //cout << "low is " << low << endl;
 
     int swapStorage = 0;
     int pivotValue = array[high];
@@ -132,8 +130,8 @@ int findKSmallestUsingIterativePartition(int* array, int size, int k) {
             high = pivotPosition - 1;
         }
         pivotPosition = partition(array, size, low, high);
-        cout << "k is" << k << endl;
-        cout << "Pivot is at " << pivotPosition << endl;
+        //cout << "k is" << k << endl;
+        //cout << "Pivot is at " << pivotPosition << endl;
         //cout << "Pivot is at " << pivotPosition << endl;
     }
     return array[k];
@@ -208,18 +206,26 @@ int findMedianOfMedians(int* array, int size, int k) {
             
             //printArray(groupOfFive, 5);
             //calculate median and put it into arrayOfMedians
-            mergeSort(groupOfFive, 0, 4);
-            arrayOfMedians[i] = groupOfFive[2];
+            //mergeSort(groupOfFive, 0, 4);
+            //arrayOfMedians[i] = groupOfFive[2];
+            arrayOfMedians[i] = modifiedSelectionSortForMedian(groupOfFive, 5);
             
 
         }
 
         //after you have all the medians, find the median of that 
         
-        mergeSort(arrayOfMedians, 0, sizeMediansArray-1);
+        //mergeSort(arrayOfMedians, 0, sizeMediansArray-1);
         
-        int pivotValue = arrayOfMedians[sizeMediansArray/2];
+        //int pivotValue = arrayOfMedians[sizeMediansArray/2];
 
+        int pivotValue = findKSmallestUsingRecursivePartition(arrayOfMedians, sizeMediansArray, sizeMediansArray / 2, 0, sizeMediansArray - 1);
+
+        //int pivotValue = findMedianOfMedians(arrayOfMedians, sizeMediansArray, sizeMediansArray / 2);
+        
+        //don't need these anymore
+        delete[] arrayOfMedians;
+        delete[] groupOfFive;
 
         for (int i = 0; i < size; i++) {
             if (array[i] == pivotValue) {
@@ -228,9 +234,7 @@ int findMedianOfMedians(int* array, int size, int k) {
         }
 
 
-        //deallocate memory
-        delete[] arrayOfMedians;
-        delete[] groupOfFive;
+        
 
 
     }
@@ -239,14 +243,21 @@ int findMedianOfMedians(int* array, int size, int k) {
 }
 
 
-int findKSmallestUsingMedians(int* array, int size, int k) {
+int findKSmallestUsingMedians(int* array, int size, int k, int low, int high) {
     
-    int low = 0;
-    int high = size - 1;
+    //int low = 0;
+    //int high = size - 1;
 
     //cout << "k is " << k << endl;
 
-    int pivotPosition = findMedianOfMedians(array, size, k);
+    int pivotPosition = low + findMedianOfMedians(array + low, size, k - low);
+    //cout << "This is pivot position " << pivotPosition << endl;
+    //cout << "this is low " << low << endl;
+    //cout << "this is high " << high << endl;
+
+    //cout << endl;
+    //cout << "before partition " << endl;
+    //printArray(array + low, high - low + 1);
 
     //swap pivotPosition with high
     int storage = array[pivotPosition];
@@ -255,7 +266,10 @@ int findKSmallestUsingMedians(int* array, int size, int k) {
     
 
     pivotPosition = partition(array, size, low, high);
-    cout << "Pivot is at " << pivotPosition << " and pivot value is " << array[pivotPosition] << endl;
+    //cout << "after partition " << endl;
+    //printArray(array + low, high - low + 1);
+
+    //cout << "Pivot is at " << pivotPosition << " and pivot value is " << array[pivotPosition] << endl;
     if (pivotPosition == k) {
         return array[k];
     }
@@ -268,19 +282,8 @@ int findKSmallestUsingMedians(int* array, int size, int k) {
         else {
             high = pivotPosition - 1;
         }
-
-        //cout << high - low + 1 << endl;
-        int* smallerArray = new int[high - low];
-        for (int i = low; i < high + 1; i++) {
-            smallerArray[i - low] = array[i];
-        }
-        cout << "this is smaller array" << endl;
-        printArray(smallerArray, high - low + 1);
-
-        cout << "This is whole array" << endl;
-        printArray(array, size);
  
-        findKSmallestUsingMedians(smallerArray, high - low + 1, k - low);
+        findKSmallestUsingMedians(array, high - low + 1, k, low, high);
 
 
         
@@ -290,25 +293,121 @@ int findKSmallestUsingMedians(int* array, int size, int k) {
 }
 
 
+void testAlgorithms(int size, int iterationsWanted, int k) {
+
+    //slightly cheating by default value to size - 1 if weird inputs
+    if (k == 1) {
+        k = 0;
+    }
+    else if (k == 2) {
+        k = size / 4;
+    }
+    else if (k == 3) {
+        k = size / 2;
+    }
+    else if (k == 4) {
+        k = (size / 4) * 3;
+    }
+    else {
+        k = size - 1;
+    }
+
+    //pointers point to arrays with the given size
+    int* masterList = new int[size];
+    int* listToSort = new int[size];
+    int* iterativePartitionList = new int[size];
+    int* recursivePartitionList = new int[size];
+
+    //make variables for keeping track of the time
+    std::chrono::nanoseconds algorithmOneTime = std::chrono::duration<long, std::nano>::zero();
+    std::chrono::nanoseconds algorithmTwoTime = std::chrono::duration<long, std::nano>::zero();
+    std::chrono::nanoseconds algorithmThreeTime = std::chrono::duration<long, std::nano>::zero();
+    std::chrono::nanoseconds algorithmFourTime = std::chrono::duration<long, std::nano>::zero();
+
+
+
+    for (int iterationsRun = 0; iterationsRun < iterationsWanted; iterationsRun++) {
+        //set masterList's values to random values from 0 to 1 billion
+        for (int i = 0; i < size; i++) {
+            masterList[i] = ((rand() % 32767) * 32767) + rand() % 32767;
+        }
+
+        //Then copy masterList's values into all three other arrays
+
+        for (int i = 0; i < size; i++) {
+            listToSort[i] = masterList[i];
+        }
+
+        for (int i = 0; i < size; i++) {
+            iterativePartitionList[i] = masterList[i];
+        }
+
+        for (int i = 0; i < size; i++) {
+            recursivePartitionList[i] = masterList[i];
+        }
+
+        //run and keep track of time
+        auto algorithmOneStart = chrono::high_resolution_clock::now();
+        mergeSort(listToSort, 0, size - 1);
+        int result = listToSort[k];
+        auto algorithmOneEnd = chrono::high_resolution_clock::now();
+        auto oneElapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(algorithmOneEnd - algorithmOneStart);
+        algorithmOneTime = algorithmOneTime + oneElapsed;
+
+        //run and keep track of time
+        auto algorithmTwoStart = chrono::high_resolution_clock::now();
+        findKSmallestUsingIterativePartition(iterativePartitionList, size, k);
+        auto algorithmTwoEnd = chrono::high_resolution_clock::now();
+        auto twoElapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(algorithmTwoEnd - algorithmTwoStart);
+        algorithmTwoTime = algorithmTwoTime + twoElapsed;
+
+        //run and keep track of time
+        auto algorithmThreeStart = chrono::high_resolution_clock::now();
+        findKSmallestUsingRecursivePartition(recursivePartitionList, size, k, 0, size - 1);
+        auto algorithmThreeEnd = chrono::high_resolution_clock::now();
+        auto threeElapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(algorithmThreeEnd - algorithmThreeStart);
+        algorithmThreeTime = algorithmThreeTime + threeElapsed;
+
+        //run and keep track of time, and we are using masterlist because it's gonna be deleted anyway so whatever
+        auto algorithmFourStart = chrono::high_resolution_clock::now();
+        findKSmallestUsingMedians(masterList, size, k, 0, size - 1);
+        auto algorithmFourEnd = chrono::high_resolution_clock::now();
+        auto fourElapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(algorithmFourEnd - algorithmFourStart);
+        algorithmFourTime = algorithmFourTime + fourElapsed;
+    }
+
+
+    
+    cout << "Algorithm 1 took " << algorithmOneTime.count() / iterationsWanted << " nanoseconds on average" << endl;
+    cout << "Algorithm 2 took " << algorithmTwoTime.count() / iterationsWanted << " nanoseconds on average" << endl;
+    cout << "Algorithm 3 took " << algorithmThreeTime.count() / iterationsWanted << " nanoseconds on average" << endl;
+    cout << "Algorithm 4 took " << algorithmFourTime.count() / iterationsWanted << " nanoseconds on average" << endl;
+
+    //deallocate memory 
+    delete[] masterList;
+    delete[] listToSort;
+    delete[] iterativePartitionList;
+    delete[] recursivePartitionList;
+
+}
+
 
 int main() {
     //initialize random (not using time, let's just have the seed always be the same for now)
-    srand(0);
+    srand(time(NULL));
 
-    int size = 0;
+    //These are hardcoded purely for example purposes
+    int size = 10;
 
-    //make array to sort, size dependent on user
-    cout << "Enter a size for the array here, values will be random 0-99" << endl;
-    cin >> size;
-
-    int k = size / 4;
+    int k = size / 2;
 
     //pointer masterList points to array of size the user gives it
     int* masterList = new int[size];
 
-    //set masterList's values to random values from 0 to 99
+    //set masterList's values to random values from 0 to about but not exactly 1 billion
+    //32767 is the minimum for rand_max, so I am using it like this so it's consistent even if rand_max is larger
     for (int i = 0; i < size; i++) {
-        masterList[i] = rand() % 100;
+        masterList[i] = ((rand() % 32767) * 32767) + rand() % 32767;
     }
 
     //Make a new list for the sorting portion, and copy values in
@@ -316,7 +415,7 @@ int main() {
     for (int i = 0; i < size; i++) {
         listToSort[i] = masterList[i];
     }
-
+    
     //run and keep track of time
     auto algorithmOneStart = chrono::high_resolution_clock::now();
     mergeSort(listToSort, 0, size-1);
@@ -348,30 +447,99 @@ int main() {
     auto algorithmThreeEnd = chrono::high_resolution_clock::now();
     cout << "Algorithm 3 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmThreeEnd - algorithmThreeStart).count() << " nanoseconds" << endl;
 
-    printArray(masterList, size);
-
     //run and keep track of time, and we are using masterlist because it's gonna be deleted anyway so whatever
     auto algorithmFourStart = chrono::high_resolution_clock::now();
-    cout << "Kth smallest element from algorithm 4 is " << findKSmallestUsingMedians(masterList, size, k) << endl;
+    cout << "Kth smallest element from algorithm 4 is " << findKSmallestUsingMedians(masterList, size, k, 0, size - 1) << endl;
     auto algorithmFourEnd = chrono::high_resolution_clock::now();
     cout << "Algorithm 4 took " << chrono::duration_cast<chrono::nanoseconds>(algorithmFourEnd - algorithmFourStart).count() << " nanoseconds" << endl;
-
-    //This is here so we can see the sorted list in the end, so we can try to verify our results
-    cout << "sorted array:" << endl;
-    printArray(listToSort, size);
-
-    //let's look at the other ones just out of curiosity 
-    cout << "results of iterative" << endl;
-    printArray(iterativePartitionList, size);
-    cout << "results of recursive" << endl;
-    printArray(recursivePartitionList, size);
-    cout << "results of MM method" << endl;
-    printArray(masterList, size);
 
     //deallocate memory 
     delete[] masterList;
     delete[] listToSort;
     delete[] iterativePartitionList;
     delete[] recursivePartitionList;
+
+    
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(10, 1000000, 2);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(50, 1000000, 2);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(100, 100000, 2);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(500, 100000, 2);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(1000, 10000, 2);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(10, 1000000, 3);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(50, 1000000, 3);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(100, 100000, 3);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(500, 100000, 3);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(1000, 10000, 3);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(10, 1000000, 4);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(50, 1000000, 4);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(100, 100000, 4);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(500, 100000, 4);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(1000, 10000, 4);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(10, 1000000, 5);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(50, 1000000, 5);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(100, 100000, 5);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(500, 100000, 5);
+
+    cout << endl;
+    //size, iterations, k
+    testAlgorithms(1000, 10000, 5);
+
+
     return 0;
 }
